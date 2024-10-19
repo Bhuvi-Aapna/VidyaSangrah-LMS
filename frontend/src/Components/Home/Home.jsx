@@ -1,11 +1,12 @@
-import { Box, Button, Image } from "@chakra-ui/react";
-import React from "react";
-import { Link } from "react-router-dom";
-import styles from "./Home.module.css"; // Import the CSS module
+import { Box, Button, Image } from '@chakra-ui/react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import styles from './Home.module.css'; // Import the CSS module
 
 function Home() {
   return (
     <Box
+    className={styles['homePage-bg']}
       bgColor="#fff"
       margin="auto"
       p={2}
@@ -14,10 +15,8 @@ function Home() {
       flexDir="column"
       alignItems="center"
     >
-      <Box className={styles["Heading-vidya"]}>
-        {" "}
-        {/* Use class from CSS module */}
-        Vidya Sangrah
+      <Box className={styles['Heading-vidya']}> {/* Use class from CSS module */}
+        Vidya <span>Sangrah</span>
       </Box>
       <Box
         bgColor="rgba(255, 255, 255, 0.13)"
@@ -32,17 +31,15 @@ function Home() {
         gap={2}
         borderRadius={10}
       >
-        <Image className={styles["logo-image"]} src="../../vidya-sangrah.png" />
+        <Image className={styles['logo-image']} src='../../vidya-sangrah.png' />
         <Box>
           <Link to="/signup">
             <Button
-              className="admin-button"
+            className={styles['admin-button']}
               bgColor="green"
               minW={200}
               color="white"
-              onClick={() => {
-                localStorage.setItem("user", "admin");
-              }}
+              onClick={() => { localStorage.setItem("user", "admin"); }}
             >
               Admin
             </Button>
@@ -51,13 +48,11 @@ function Home() {
         <Link to="/signup">
           <Box>
             <Button
-              className="student-button"
+           className={styles['student-button']}
               bgColor="green"
               minW={200}
               color="white"
-              onClick={() => {
-                localStorage.setItem("user", "student");
-              }}
+              onClick={() => { localStorage.setItem("user", "student"); }}
             >
               Employee
             </Button>

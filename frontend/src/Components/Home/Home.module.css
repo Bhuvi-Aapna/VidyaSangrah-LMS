@@ -1,5 +1,5 @@
 .Heading-vidya {
-  font-family: "Montserrat", sans-serif; /* Use the chosen font */
+  font-family: 'Montserrat', sans-serif; /* Use the chosen font */
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 0rem;
@@ -8,22 +8,34 @@
   text-align: center; /* Center the text if desired */
   text-transform: uppercase; /* Optional: make the text uppercase */
   /* #a435f0 */
-  transition: transform 0.3s ease, color 0.3s ease; /* Smooth animation */
+  user-select: none;
 }
 
-.Heading-vidya:hover {
-  transform: scale(1.1) rotate(5deg); /* Slightly enlarges and tilts the text */
-  color: #ff6347; /* Changes color on hover (e.g., tomato) */
+.Heading-vidya span{
+  color:#a435f0;
 }
 
-.student-button:hover,
-.admin-button:hover,
-.css-1spvthi:hover {
-  background-color: #a435f0 !important;
+.student-button:hover, .admin-button:hover{
+  background-color:#a435f0 !important;
+
 }
 
-img.logo-image {
+
+
+img.logo-image{
+  user-select: none !important;
   height: 3rem;
   border-radius: 50%;
-  margin-bottom: 1rem;
+  margin-bottom:1rem;
+}
+
+.homePage-bg{
+  background-image: url(https://frontends.udemycdn.com/components/auth/desktop-illustration-step-2-x2.webp);
+  background-size: 30%;
+  background-repeat: no-repeat;
+  background-position: left bottom;
+}
+
+body{
+  user-select: none;
 }
