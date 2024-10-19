@@ -39,7 +39,7 @@ function Login() {
 
         setLoading(false)
         if (user === "admin" && l != 1) {
-          navigate("/student")
+          navigate("/employee")
         } else if (user === "student" && l != 1) {
           navigate("/courses")
         }

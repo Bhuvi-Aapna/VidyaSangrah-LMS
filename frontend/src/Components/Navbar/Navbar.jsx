@@ -79,7 +79,7 @@ function Navbar() {
         )}
         {isToken && currentUser.person === "admin" && (
           <Box color={"white"}>
-            <NavLink to={"/student"}>Students</NavLink>
+            <NavLink to={"/employee"}>Employees</NavLink>
           </Box>
         )}
         {isToken && currentUser.person === "admin" && (
@@ -154,7 +154,7 @@ function Navbar() {
                   )}
                   {isToken && (
                     <Box onClick={onClose}>
-                      <NavLink to={"/student"}>Students</NavLink>
+                      <NavLink to={"/employee"}>Employees</NavLink>
                     </Box>
                   )}
                   {isToken && (

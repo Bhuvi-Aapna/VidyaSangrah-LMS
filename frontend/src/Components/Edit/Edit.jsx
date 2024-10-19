@@ -50,11 +50,11 @@ function Edit() {
                 duration:9000,
                 position:"top"
             })
-            navigate("/student")
+            navigate("/employee")
         }).catch((er)=>console.log(er))
     }
     let handleCancel=()=>{
-        navigate("/student")
+        navigate("/employee")
     }
     useEffect(()=>{
       onOpen()
@@ -70,40 +70,40 @@ function Edit() {
       >
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Edit Student</ModalHeader>
+          <ModalHeader>Edit Employee</ModalHeader>
         
           <ModalBody pb={6}>
             <FormControl>
               <FormLabel>Name</FormLabel>
-              <Input value={name} onChange={(e)=>setName(e.target.value)} ref={initialRef} placeholder='Student Name' />
+              <Input value={name} onChange={(e)=>setName(e.target.value)} ref={initialRef} placeholder='Employee Name' />
             </FormControl>
             <FormControl>
               <FormLabel>Email</FormLabel>
-              <Input value={email} onChange={(e)=>setEmail(e.target.value)} ref={initialRef} placeholder='Student Email' />
+              <Input value={email} onChange={(e)=>setEmail(e.target.value)} ref={initialRef} placeholder='Employee Email' />
             </FormControl>
             <FormControl>
-              <FormLabel>Student-ID</FormLabel>
-              <Input value={studentId} onChange={(e)=>setStudentId(e.target.value)} ref={initialRef} placeholder='Student-ID' />
+              <FormLabel>Employee-ID</FormLabel>
+              <Input value={studentId} onChange={(e)=>setStudentId(e.target.value)} ref={initialRef} placeholder='Employee-ID' />
             </FormControl>
             <FormControl>
                 <FormLabel>Course</FormLabel>
-                <Input value={course} onChange={(e) => setCourse(e.target.value)} ref={initialRef} placeholder=' Student Course' />
+                <Input value={course} onChange={(e) => setCourse(e.target.value)} ref={initialRef} placeholder=' Employee Course' />
               </FormControl>
               <FormControl>
                 <FormLabel>CourseType</FormLabel>
-                <Input value={coursetime} onChange={(e) => setCoursetime(e.target.value)} ref={initialRef} placeholder=' Student Course Time' />
+                <Input value={coursetime} onChange={(e) => setCoursetime(e.target.value)} ref={initialRef} placeholder=' Employee Course Time' />
               </FormControl>
               <FormControl>
                 <FormLabel>State</FormLabel>
-                <Input value={state} onChange={(e) => setState(e.target.value)} ref={initialRef} placeholder=' Student State ' />
+                <Input value={state} onChange={(e) => setState(e.target.value)} ref={initialRef} placeholder=' Employee State ' />
               </FormControl>
               <FormControl>
                 <FormLabel>Index</FormLabel>
-                <Input value={index} onChange={(e) => setIndex(e.target.value)} ref={initialRef} placeholder=' Student Index ' />
+                <Input value={index} onChange={(e) => setIndex(e.target.value)} ref={initialRef} placeholder=' Employee Index ' />
               </FormControl>
             <FormControl>
               <FormLabel>Image</FormLabel>
-              <Input value={img} onChange={(e)=>setImg(e.target.value)} ref={initialRef} placeholder=' Student Image Url' />
+              <Input value={img} onChange={(e)=>setImg(e.target.value)} ref={initialRef} placeholder=' Employee Image Url' />
             </FormControl>
           </ModalBody>
 

@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
 })
 
 // ------admin----//
-app.use("/student", studentRouter)
+app.use("/employee", studentRouter)
 app.use("/admin", adminRouter)
 app.use(authentication)
 app.use("/adminwork", adminWork)

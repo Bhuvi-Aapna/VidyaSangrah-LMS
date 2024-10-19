@@ -59,7 +59,7 @@ function Home() {
                 localStorage.setItem("user", "student");
               }}
             >
-              Student
+              Employee
             </Button>
           </Box>
         </Link>

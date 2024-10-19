@@ -32,7 +32,7 @@ function Courses() {
       type: "full time",
       req: "requires no coding experience",
       level: "Level 1 - Full Stack",
-      course: "Web Development",
+      course: "Mera Monitor",
       date: "Course starts on 08 May 2023",
       weeks: "Launch your career in 35 weeks",
       rs: "Pay after placement of 5 LPA or above",
@@ -43,7 +43,7 @@ function Courses() {
       type: "part time",
       req: "requires no coding experience",
       level: "Level 1 - Full Stack",
-      course: "Web Development",
+      course: "HR One",
       date: "Course starts on 20 Mar 2023",
       weeks: "Launch your career in 30 weeks",
       rs: "Pay after placement of 5 LPA or above",
@@ -54,7 +54,7 @@ function Courses() {
       type: "full time",
       req: "REQUIRES NO ANALYTICS EXPERIENCE",
       level: "Level 1 ",
-      course: "Data Analytics",
+      course: "PMS",
       date: "Course starts on 29 May 2023",
       weeks: "Course starts on 29 May 2023",
       rs: "Pay after placement of 5 LPA or above",
@@ -65,7 +65,7 @@ function Courses() {
       type: "full time",
       req: "REQUIRES MINIMUM ONE YEAR OF TECH EXPERIENCE",
       level: "Level 2",
-      course: "Backend Development",
+      course: "Karyakeeper",
       date: "Course starts on 08 May 2023",
       weeks: "Launch your career in 22 weeks",
       rs: "Pay after placement of 10 LPA or above",
@@ -226,36 +226,7 @@ function Courses() {
                     gap={2}
                     w={"fit-content"}
                   >
-                    <Badge
-                      color={"#6E71CC"}
-                      width={"fit-content"}
-                      pl={2}
-                      pr={2}
-                      borderRadius={15}
-                      fontSize={{ base: 8, sm: 12, md: 12, lg: 13, xl: 13 }}
-                    >
-                      {el.elg}
-                    </Badge>
-                    <Badge
-                      bgColor={"#F6EDE7"}
-                      width={"fit-content"}
-                      color={"#cc926e"}
-                      pl={2}
-                      pr={2}
-                      borderRadius={15}
-                      fontSize={{ base: 8, sm: 12, md: 12, lg: 13, xl: 13 }}
-                    >
-                      {el.type}
-                    </Badge>
-                    <Badge
-                      pl={2}
-                      pr={2}
-                      borderRadius={15}
-                      fontSize={{ base: 8, sm: 12, md: 12, lg: 13, xl: 13 }}
-                      color={"#1A9FBD"}
-                    >
-                      {el.req}
-                    </Badge>
+                   
                   </Box>
 
                   {/* --------- */}
@@ -268,9 +239,6 @@ function Courses() {
                     pl={6}
                     w={"fit-content"}
                   >
-                    <Text fontSize={20} fontWeight={600}>
-                      {el.level}
-                    </Text>
                     <Text fontSize={20} fontWeight={700}>
                       {el.course}
                     </Text>
@@ -286,14 +254,6 @@ function Courses() {
                     <Box display={"flex"} gap={2} alignItems={"center"}>
                       <CalendarIcon />
                       <Text>{el.date}</Text>
-                    </Box>
-                    <Box display={"flex"} gap={2} alignItems={"center"}>
-                      <TimeIcon />
-                      <Text>{el.weeks}</Text>
-                    </Box>
-                    <Box display={"flex"} gap={2} alignItems={"center"}>
-                      <HiOutlineCurrencyRupee />
-                      <Text>{el.rs}</Text>
                     </Box>
                   </Box>
                   {/* -------- */}
