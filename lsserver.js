@@ -266,8 +266,23 @@ app.get("/create-producer/:roomName", async (req, res) => {
       appData:{type:"plain-audio"}
     });
 
-    room.transports.set(videoTransport.id, videoTransport);
-    room.transports.set(audioTransport.id, audioTransport);
+    console.log('plain transports created:');
+    console.log('  videoTransport.tuple:', JSON.stringify(videoTransport.tuple || {}, null, 2));
+    console.log('  videoTransport.rtcpTuple:', JSON.stringify(videoTransport.rtcpTuple || {}, null, 2));
+    console.log('  audioTransport.tuple:', JSON.stringify(audioTransport.tuple || {}, null, 2));
+    console.log('  audioTransport.rtcpTuple:', JSON.stringify(audioTransport.rtcpTuple || {}, null, 2));
+
+   // Periodically print tuple info to see remote address when packets arrive
+   const logTupleInterval = setInterval(() => {
+     try {
+       console.log('videoTransport.tuple (live):', JSON.stringify(videoTransport.tuple || {}, null, 2));
+       console.log('videoTransport.rtcpTuple (live):', JSON.stringify(videoTransport.rtcpTuple || {}, null, 2));
+     } catch (e) {}
+   }, 2000);
+
+   // clear interval when transport closes
+   videoTransport.on('close', () => clearInterval(logTupleInterval));
+   audioTransport.on('close', () => {});
 
     // Define proper codec parameters (H264 + Opus)
     const videoCodec = {
