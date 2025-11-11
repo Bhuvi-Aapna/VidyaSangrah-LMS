@@ -269,6 +269,7 @@ app.get("/create-producer/:roomName", async (req, res) => {
     const videoCodec = {
       mimeType: "video/H264",
       clockRate: 90000,
+      payloadType: 101,
       parameters: {
         "packetization-mode": 1,
         "profile-level-id": "42e01f",
