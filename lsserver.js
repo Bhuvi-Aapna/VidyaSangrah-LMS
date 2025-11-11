@@ -288,12 +288,26 @@ app.get("/create-producer/:roomName", async (req, res) => {
       payloadType: 100,
     };
 
-    // Create video producer
+    // After creating videoTransport and audioTransport, read optional sender info
+    const senderIp = req.query?.senderIp;
+    const senderPort = req.query?.senderPort ? Number(req.query.senderPort) : undefined;
+
+    // If caller provided sender info, connect the plain transport BEFORE producing
+    if (senderIp && senderPort) {
+      try {
+        await videoTransport.connect({ ip: senderIp, port: senderPort });
+        console.log('videoTransport.connect() to', senderIp, senderPort);
+      } catch (err) {
+        console.warn('videoTransport.connect() failed', err);
+      }
+    }
+
+    // Now create videoProducer (transport already connected / bound to remote sender)
     const videoProducer = await videoTransport.produce({
       kind: "video",
       rtpParameters: {
         codecs: [videoCodec],
-        encodings: [{ ssrc: 11111 }], // match FFmpeg ssrc
+        encodings: [{ ssrc: 11111 }],
         rtcp: { cname: "videoCname" },
       },
     });
@@ -350,19 +364,6 @@ app.get("/create-producer/:roomName", async (req, res) => {
     // Helpful debug log when rtcp tuple is not yet available
     if (!rtcpMux && !videoTransport.rtcpTuple) {
       console.warn('create-producer: videoTransport.rtcpTuple not yet available; remote RTCP may not have arrived');
-    }
-
-    // After creating videoTransport and audioTransport, if sender info provided:
-    const senderIp = req.query?.senderIp;
-    const senderPort = req.query?.senderPort ? Number(req.query.senderPort) : undefined;
-
-    if (senderIp && senderPort && videoTransport) {
-      try {
-        await videoTransport.connect({ ip: senderIp, port: senderPort });
-        console.log('videoTransport.connect() to', senderIp, senderPort);
-      } catch (err) {
-        console.warn('videoTransport.connect() failed', err);
-      }
     }
 
     res.json({ videoRtpPort, videoRtcpPort, audioRtpPort, audioRtcpPort, rtcpMux });
