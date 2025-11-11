@@ -339,11 +339,18 @@ app.get("/create-producer/:roomName", async (req, res) => {
     }
 
     // Reply with the ports so the FFmpeg process can send RTP to them
+    // If rtcpMux is enabled, RTCP is on the same port as RTP (no separate rtcpTuple).
+    const videoRtpPort = videoTransport.tuple?.localPort ?? null;
+    const videoRtcpPort = videoTransport.rtcpTuple?.localPort ?? (videoTransport.rtcpMux ? videoRtpPort : null);
+    const audioRtpPort = audioTransport.tuple?.localPort ?? null;
+    const audioRtcpPort = audioTransport.rtcpTuple?.localPort ?? (audioTransport.rtcpMux ? audioRtpPort : null);
+
     res.json({
-      videoRtpPort: videoTransport.tuple.localPort,
-      videoRtcpPort: videoTransport.rtcpTuple.localPort,
-      audioRtpPort: audioTransport.tuple.localPort,
-      audioRtcpPort: audioTransport.rtcpTuple.localPort,
+      videoRtpPort,
+      videoRtcpPort,
+      audioRtpPort,
+      audioRtcpPort,
+      rtcpMux: !!videoTransport.rtcpMux
     });
   } catch (err) {
     console.error("create-producer error:", err);
