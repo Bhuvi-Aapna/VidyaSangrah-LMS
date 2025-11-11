@@ -22,9 +22,6 @@ const io = new Server(httpsServer, { cors: { origin: "*" } });
 const PORT = 3000;
 httpsServer.listen(PORT, () => console.log(`✅ Server listening on https://localhost:${PORT}`));
 
-// Add: announced IP (prefer public IP string or use env var)
-const ANNOUNCED_IP = process.env.ANNOUNCED_IP || "74.225.130.88"; // update to your public IP if different
-
 /* ---------------- mediasoup setup ---------------- */
 const workers = [];
 const rooms = new Map();
@@ -49,19 +46,9 @@ async function getWorker() {
 
 async function createRoom(roomName) {
   const worker = await getWorker();
-  // Add H264 codec parameters (packetization-mode, profile) to avoid codec mismatches
   const mediaCodecs = [
     { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
-    {
-      kind: "video",
-      mimeType: "video/H264",
-      clockRate: 90000,
-      parameters: {
-        "packetization-mode": 1,
-        "profile-level-id": "42e01f",
-        "level-asymmetry-allowed": 1
-      }
-    },
+    { kind: "video", mimeType: "video/H264", clockRate: 90000 },
   ];
   const router = await worker.createRouter({ mediaCodecs });
   const transports = new Map(); // transportId -> transport
@@ -96,7 +83,7 @@ io.on("connection", (socket) => {
       if (!room) return callback({ error: "Room not found" });
 
       const transport = await room.router.createWebRtcTransport({
-        listenIps: [{ ip: "0.0.0.0", announcedIp: ANNOUNCED_IP }],
+        listenIps: [{ ip: "0.0.0.0", announcedIp: "stream.meramonitor.com" }],
         enableUdp: true,
         enableTcp: true,
         preferUdp: true,
@@ -254,46 +241,26 @@ app.get("/create-producer/:roomName", async (req, res) => {
 
     // Create RTP + RTCP transport (plain)
     const videoTransport = await router.createPlainTransport({
-      listenIp: { ip: "0.0.0.0", announcedIp: ANNOUNCED_IP },
+      listenIp: { ip: "0.0.0.0", announcedIp: "stream.meramonitor.com" },
       rtcpMux: false,
       comedia: true,
-      appData:{type:"plain-video"}
+	  appData:{type:"plain-video"}
     });
     const audioTransport = await router.createPlainTransport({
-      listenIp: { ip: "0.0.0.0", announcedIp: ANNOUNCED_IP },
+      listenIp: { ip: "0.0.0.0", announcedIp: "stream.meramonitor.com" },
       rtcpMux: false,
       comedia: true,
-      appData:{type:"plain-audio"}
+	  appData:{type:"plain-audio"}
     });
 
-    console.log('plain transports created:');
-    console.log('  videoTransport.tuple:', JSON.stringify(videoTransport.tuple || {}, null, 2));
-    console.log('  videoTransport.rtcpTuple:', JSON.stringify(videoTransport.rtcpTuple || {}, null, 2));
-    console.log('  audioTransport.tuple:', JSON.stringify(audioTransport.tuple || {}, null, 2));
-    console.log('  audioTransport.rtcpTuple:', JSON.stringify(audioTransport.rtcpTuple || {}, null, 2));
-
-   // Periodically print tuple info to see remote address when packets arrive
-   const logTupleInterval = setInterval(() => {
-     try {
-       console.log('videoTransport.tuple (live):', JSON.stringify(videoTransport.tuple || {}, null, 2));
-       console.log('videoTransport.rtcpTuple (live):', JSON.stringify(videoTransport.rtcpTuple || {}, null, 2));
-     } catch (e) {}
-   }, 2000);
-
-   // clear interval when transport closes
-   videoTransport.on('close', () => clearInterval(logTupleInterval));
-   audioTransport.on('close', () => {});
-
+	room.transports.set(videoTransport.id, videoTransport);
+	room.transports.set(audioTransport.id, audioTransport);
+ 
     // Define proper codec parameters (H264 + Opus)
     const videoCodec = {
       mimeType: "video/H264",
       clockRate: 90000,
       payloadType: 96,
-      parameters: {
-        "packetization-mode": 1,
-        "profile-level-id": "42e01f",
-        "level-asymmetry-allowed": 1
-      },
       rtcpFeedback: [
         { type: "nack" },
         { type: "nack", parameter: "pli" },
@@ -307,20 +274,19 @@ app.get("/create-producer/:roomName", async (req, res) => {
       payloadType: 100,
     };
 
-    // Create video producer (provide encodings.ssrc to match FFmpeg)
+    // Create video producer
     const videoProducer = await videoTransport.produce({
       kind: "video",
       rtpParameters: {
         codecs: [videoCodec],
-        // provide the SSRC we will tell FFmpeg to use
         encodings: [{ ssrc: 11111 }],
         rtcp: { cname: "videoCname" },
       },
     });
-    
+
     console.log('videoProducer created id=', videoProducer.id, 'kind=', videoProducer.kind);
-    
-    // Create audio producer (provide encodings.ssrc to match FFmpeg)
+
+    // Create audio producer
     const audioProducer = await audioTransport.produce({
       kind: "audio",
       rtpParameters: {
@@ -332,31 +298,19 @@ app.get("/create-producer/:roomName", async (req, res) => {
 
     console.log('audioProducer created id=', audioProducer.id, 'kind=', audioProducer.kind);
 
-    // Add stats logging to confirm packets arrive and producers receive RTP
-    setInterval(async () => {
-      try {
-        const tStats = await videoTransport.getStats();
-        console.log('videoTransport stats:', JSON.stringify(tStats, null, 2));
-        const pStats = await videoProducer.getStats();
-        console.log('videoProducer stats:', JSON.stringify(pStats, null, 2));
-      } catch (e) {
-        console.warn('stats error', e);
-      }
-    }, 3000);
+    // Register producers in the room so consumers can find them
+    room.producers.set(videoProducer.id, videoProducer);
+    room.producers.set(audioProducer.id, audioProducer);
+    console.log(`room.producers count=${room.producers.size}`);
 
-    setInterval(async () => {
-      try {
-        const aTStats = await audioTransport.getStats();
-        const aPStats = await audioProducer.getStats();
-        console.log('audioTransport stats:', JSON.stringify(aTStats, null, 2));
-        console.log('audioProducer stats:', JSON.stringify(aPStats, null, 2));
-      } catch (e) {}
-    }, 5000);
+    // Notify viewers in the room a new producer is available
+    try {
+      io.to(roomName).emit("newProducer", { producerId: videoProducer.id, kind: "video" });
+    } catch (e) {
+      console.warn("emit newProducer failed", e);
+    }
 
-    console.log(`🎥 Producers created for room: ${roomName}`);
-    console.log(`VIDEO RTP: ${videoTransport.tuple.localPort}, RTCP: ${videoTransport.rtcpTuple.localPort}`);
-    console.log(`AUDIO RTP: ${audioTransport.tuple.localPort}, RTCP: ${audioTransport.rtcpTuple.localPort}`);
-
+    // Reply with the ports so the FFmpeg process can send RTP to them
     res.json({
       videoRtpPort: videoTransport.tuple.localPort,
       videoRtcpPort: videoTransport.rtcpTuple.localPort,
