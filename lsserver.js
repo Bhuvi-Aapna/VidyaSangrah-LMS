@@ -293,7 +293,7 @@ app.get("/create-producer/:roomName", async (req, res) => {
       kind: "video",
       rtpParameters: {
         codecs: [videoCodec],
-        encodings: [{}], // let mediasoup learn SSRC from incoming RTP
+        encodings: [{ ssrc: 11111 }], // match FFmpeg ssrc
         rtcp: { cname: "videoCname" },
       },
     });
