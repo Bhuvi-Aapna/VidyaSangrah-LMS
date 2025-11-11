@@ -307,27 +307,32 @@ app.get("/create-producer/:roomName", async (req, res) => {
       payloadType: 100,
     };
 
-    // Create video producer
+    // Create video producer (do NOT hardcode encodings.ssrc here)
     const videoProducer = await videoTransport.produce({
       kind: "video",
       rtpParameters: {
         codecs: [videoCodec],
-        encodings: [{ ssrc: 11111 }],
+        // don't set encodings.ssrc so mediasoup can learn the incoming SSRC from FFmpeg
+        // encodings: [{ ssrc: 11111 }],
         rtcp: { cname: "videoCname" },
       },
     });
 
-    // Create audio producer
+    console.log('videoProducer created id=', videoProducer.id, 'kind=', videoProducer.kind);
+
+    // Create audio producer (do NOT hardcode encodings.ssrc)
     const audioProducer = await audioTransport.produce({
       kind: "audio",
       rtpParameters: {
         codecs: [audioCodec],
-        encodings: [{ ssrc: 22222 }],
+        // encodings: [{ ssrc: 22222 }],
         rtcp: { cname: "audioCname" },
       },
     });
 
-    // Add stats logging to confirm packets arrive
+    console.log('audioProducer created id=', audioProducer.id, 'kind=', audioProducer.kind);
+
+    // Add stats logging to confirm packets arrive and producers receive RTP
     setInterval(async () => {
       try {
         const tStats = await videoTransport.getStats();
