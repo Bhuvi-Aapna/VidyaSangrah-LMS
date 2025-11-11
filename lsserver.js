@@ -48,7 +48,16 @@ async function createRoom(roomName) {
   const worker = await getWorker();
   const mediaCodecs = [
     { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
-    { kind: "video", mimeType: "video/H264", clockRate: 90000 },
+    {
+      kind: "video",
+      mimeType: "video/H264",
+      clockRate: 90000,
+      parameters: {
+        "packetization-mode": 1,
+        "profile-level-id": "42e01f",
+        "level-asymmetry-allowed": 1
+      }
+    },
   ];
   const router = await worker.createRouter({ mediaCodecs });
   const transports = new Map(); // transportId -> transport
@@ -260,7 +269,12 @@ app.get("/create-producer/:roomName", async (req, res) => {
     const videoCodec = {
       mimeType: "video/H264",
       clockRate: 90000,
-      payloadType: 96,
+      payloadType: 101, // keep consistent or let mediasoup pick
+      parameters: {
+        "packetization-mode": 1,
+        "profile-level-id": "42e01f",
+        "level-asymmetry-allowed": 1
+      },
       rtcpFeedback: [
         { type: "nack" },
         { type: "nack", parameter: "pli" },
