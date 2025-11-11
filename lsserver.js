@@ -352,6 +352,19 @@ app.get("/create-producer/:roomName", async (req, res) => {
       console.warn('create-producer: videoTransport.rtcpTuple not yet available; remote RTCP may not have arrived');
     }
 
+    // After creating videoTransport and audioTransport, if sender info provided:
+const senderIp = req.query.senderIp;   // require Program.exe to call /create-producer?senderIp=1.2.3.4&senderPort=40000
+const senderPort = Number(req.query.senderPort);
+if (senderIp && senderPort) {
+  try {
+    // force the transport to talk to the sender (no comedia reliance)
+    await videoTransport.connect({ ip: senderIp, port: senderPort });
+    console.log('videoTransport.connect() to', senderIp, senderPort);
+  } catch (e) {
+    console.warn('videoTransport.connect() failed', e);
+  }
+}
+
     res.json({ videoRtpPort, videoRtcpPort, audioRtpPort, audioRtcpPort, rtcpMux });
   } catch (err) {
     console.error("create-producer error:", err);
