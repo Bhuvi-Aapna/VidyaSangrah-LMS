@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeraMonitor - Roster Shift System Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f7;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #fff;
+            border-right: 1px solid #e5e5e5;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .menu-item:hover {
+            background: #f5f5f7;
+            color: #333;
+        }
+
+        .menu-item.active {
+            background: #667eea;
+            color: white;
+            border-left: 4px solid #4c5fd5;
+        }
+
+        .menu-item-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 40px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #86868b;
+            font-size: 14px;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .info-icon {
+            width: 16px;
+            height: 16px;
+            background: #86868b;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: help;
+        }
+
+        .form-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px 14px;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: #d2d2d7;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        /* Checkbox Days */
+        .days-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .day-checkbox {
+            display: none;
+        }
+
+        .day-label {
+            padding: 8px 16px;
+            border: 2px solid #d2d2d7;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .day-checkbox:checked + .day-label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 20px;
+            border-bottom: 2px solid #e5e5e5;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 12px 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #86868b;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #333;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .mode-card {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-card:hover {
+            border-color: #667eea;
+        }
+
+        .mode-card.selected {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .mode-radio {
+            display: none;
+        }
+
+        .mode-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-description {
+            font-size: 13px;
+            color: #86868b;
+        }
+
+        .radio-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d2d2d7;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .mode-card.selected .radio-icon {
+            border-color: #667eea;
+        }
+
+        .mode-card.selected .radio-icon::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Shift Templates Table */
+        .shift-templates-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .shift-templates-table th {
+            text-align: left;
+            padding: 12px;
+            background: #f5f5f7;
+            font-weight: 600;
+            font-size: 13px;
+            color: #666;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .shift-templates-table td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .shift-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .shift-badge.morning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .shift-badge.evening {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .shift-badge.night {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #f5f5f7;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e5e7;
+        }
+
+        .btn-icon {
+            background: none;
+            color: #667eea;
+            padding: 8px;
+        }
+
+        .btn-icon:hover {
+            background: #f5f7ff;
+        }
+
+        /* Roster Calendar */
+        .roster-calendar {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            padding: 20px;
+            background: #f5f5f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .calendar-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .calendar-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .calendar-filters {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .calendar-grid {
+            overflow-x: auto;
+        }
+
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+
+        .calendar-table th {
+            background: #fafafa;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #e5e5e5;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .calendar-table th.checkbox-col {
+            width: 40px;
+            background: #fff;
+            left: 0;
+            z-index: 11;
+        }
+
+        .calendar-table th.employee-col {
+            text-align: left;
+            padding-left: 16px;
+            min-width: 150px;
+            background: #fff;
+            left: 40px;
+            z-index: 11;
+        }
+
+        .calendar-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #e5e5e5;
+            min-width: 100px;
+            height: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calendar-table td.checkbox-col {
+            text-align: center;
+            background: #fff;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            cursor: default;
+        }
+
+        .calendar-table td.employee-col {
+            text-align: left;
+            padding-left: 16px;
+            font-weight: 500;
+            background: #fff;
+            position: sticky;
+            left: 40px;
+            z-index: 5;
+        }
+
+        .calendar-table td:hover:not(.employee-col):not(.checkbox-col) {
+            background: #f5f7ff;
+        }
+
+        .employee-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .shift-cell {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .shift-cell.T9 {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .shift-cell.T2 {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .shift-cell.T3B {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .shift-cell.T23 {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .shift-cell.TSB {
+            background: #e7d9f7;
+            color: #5a2d82;
+        }
+
+        .weekly-off {
+            background: #f8f9fa !important;
+            color: #86868b;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .modal-info {
+            background: #f5f7ff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .modal-info-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .modal-info-value {
+            color: #333;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* Slider */
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        /* Alert Badge */
+        .alert-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #fef3cd;
+            color: #997404;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .roster-preview {
+            background: #f5f7ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .roster-preview-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .roster-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .roster-day {
+            background: white;
+            padding: 12px 8px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #e5e5e5;
+        }
+
+        .roster-day-name {
+            font-size: 11px;
+            color: #86868b;
+            margin-bottom: 4px;
+        }
+
+        .roster-day-shift {
+            font-size: 13px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <div class="logo-text">MeraMonitor</div>
+            </div>
+            
+            <div class="menu-item active" onclick="showSection('org-config')">
+                <span class="menu-item-icon">⚙️</span>
+                <span>Organization Config</span>
+            </div>
+            <div class="menu-item" onclick="showSection('shift-templates')">
+                <span class="menu-item-icon">📋</span>
+                <span>Shift Templates</span>
+            </div>
+            <div class="menu-item" onclick="showSection('roster-calendar')">
+                <span class="menu-item-icon">📅</span>
+                <span>Roster Calendar</span>
+            </div>
+            <div class="menu-item" onclick="showSection('member-profile')">
+                <span class="menu-item-icon">👤</span>
+                <span>Member Profile</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Organization Configuration -->
+            <div id="org-config" class="content-section active">
+                <div class="page-header">
+                    <h1 class="page-title">General Configuration</h1>
+                    <p class="page-subtitle">Manage organization-wide general settings.</p>
+                </div>
+
+                <!-- Roster Mode Selection -->
+                <div class="card">
+                    <div class="card-title">Roster Mode <span class="alert-badge">NEW</span></div>
+                    <div class="mode-selector">
+                        <label class="mode-card selected" onclick="selectMode('fixed')">
+                            <input type="radio" name="roster-mode" value="fixed" class="mode-radio" checked>
+                            <div class="mode-title">
+                                <span class="radio-icon"></span>
+                                Fixed Shift Mode
+                            </div>
+                            <div class="mode-description">
+                                Each member has a single fixed shift schedule. Simple and straightforward.
+                            </div>
+                        </label>
+                        <label class="mode-card" onclick="selectMode('roster')">
+                            <input type="radio" name="roster-mode" value="roster" class="mode-radio">
+                            <div class="mode-title">
+                                <span class="radio-icon"></span>
+                                Advanced Roster Mode
+                            </div>
+                            <div class="mode-description">
+                                Flexible scheduling with multiple shift patterns, rotating rosters, and calendar-based planning.
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Basic Settings -->
+                <div class="card">
+                    <div class="card-title">Basic Settings</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Cut Off Time (hh:mm:ss)
+                            <span class="info-icon" title="Time when day changes for attendance calculation">?</span>
+                        </label>
+                        <input type="text" class="form-input" value="01:00:01" placeholder="01:00:01">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Shift Start Time</label>
+                        <input type="time" class="form-input" value="07:00">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Shift End Time</label>
+                        <input type="time" class="form-input" value="14:10">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Attendance Hours Per Day (hh:mm:ss)
+                            <span class="info-icon" title="Expected work hours per day">?</span>
+                        </label>
+                        <input type="text" class="form-input" value="08:02:00" placeholder="08:02:00">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Working Days Per Week</label>
+                        <div class="days-selector">
+                            <input type="checkbox" id="mon" class="day-checkbox" checked>
+                            <label for="mon" class="day-label">Mon</label>
+                            
+                            <input type="checkbox" id="tue" class="day-checkbox" checked>
+                            <label for="tue" class="day-label">Tue</label>
+                            
+                            <input type="checkbox" id="wed" class="day-checkbox" checked>
+                            <label for="wed" class="day-label">Wed</label>
+                            
+                            <input type="checkbox" id="thu" class="day-checkbox" checked>
+                            <label for="thu" class="day-label">Thu</label>
+                            
+                            <input type="checkbox" id="fri" class="day-checkbox" checked>
+                            <label for="fri" class="day-label">Fri</label>
+                            
+                            <input type="checkbox" id="sat" class="day-checkbox" checked>
+                            <label for="sat" class="day-label">Sat</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Configuration -->
+                <div class="card">
+                    <div class="card-title">Alert Configuration</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Suspicious Keyboard Mail Alert</label>
+                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Start Stop Mail Alert</label>
+                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Idle Time Mail Alert</label>
+                        <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                    </div>
+
+                    <div class="form-group" id="idle-time-slider-container">
+                        <label class="form-label">Idle Time Alert (min)</label>
+                        <div class="slider-container">
+                            <input type="range" min="10" max="60" value="10" class="slider" id="idleTimeSlider" oninput="updateSliderValue(this)">
+                            <div class="slider-value" id="idleTimeValue">10 minutes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-secondary">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveOrgConfig()">Save Configuration</button>
+                </div>
+            </div>
+
+            <!-- Shift Templates -->
+            <div id="shift-templates" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Shift Templates</h1>
+                    <p class="page-subtitle">Create and manage reusable shift patterns for your roster.</p>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="card-title" style="margin: 0;">All Shift Templates</div>
+                        <button class="btn btn-primary" onclick="openShiftModal()">
+                            <span>➕</span> Add Shift Template
+                        </button>
+                    </div>
+
+                    <table class="shift-templates-table">
+                        <thead>
+                            <tr>
+                                <th>Shift Code</th>
+                                <th>Shift Name</th>
+                                <th>Time Range</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shiftTemplatesBody">
+                            <tr>
+                                <td><span class="shift-badge morning">T9</span></td>
+                                <td>Morning Shift</td>
+                                <td>07:00 - 15:00</td>
+                                <td>
+                                    <button class="btn btn-icon" onclick="editShift('T9')">✏️</button>
+                                    <button class="btn btn-icon" onclick="deleteShift('T9')">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="shift-badge evening">T2</span></td>
+                                <td>Evening Shift</td>
+                                <td>15:00 - 23:00</td>
+                                <td>
+                                    <button class="btn btn-icon" onclick="editShift('T2')">✏️</button>
+                                    <button class="btn btn-icon" onclick="deleteShift('T2')">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="shift-badge night">T3B</span></td>
+                                <td>Night Shift</td>
+                                <td>23:00 - 07:00</td>
+                                <td>
+                                    <button class="btn btn-icon" onclick="editShift('T3B')">✏️</button>
+                                    <button class="btn btn-icon" onclick="deleteShift('T3B')">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="shift-badge" style="background: #f8d7da; color: #842029;">T23</span></td>
+                                <td>Split Shift</td>
+                                <td>10:00 - 19:00</td>
+                                <td>
+                                    <button class="btn btn-icon" onclick="editShift('T23')">✏️</button>
+                                    <button class="btn btn-icon" onclick="deleteShift('T23')">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="shift-badge" style="background: #e7d9f7; color: #5a2d82;">TSB</span></td>
+                                <td>Special Shift</td>
+                                <td>12:00 - 20:00</td>
+                                <td>
+                                    <button class="btn btn-icon" onclick="editShift('TSB')">✏️</button>
+                                    <button class="btn btn-icon" onclick="deleteShift('TSB')">🗑️</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Roster Calendar -->
+            <div id="roster-calendar" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Roster Calendar</h1>
+                    <p class="page-subtitle">View and manage shift assignments for your team.</p>
+                </div>
+
+                <div class="roster-calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-title">November 2025</div>
+                        <div class="calendar-controls">
+                            <button class="btn btn-secondary">← Previous</button>
+                            <button class="btn btn-secondary">Today</button>
+                            <button class="btn btn-secondary">Next →</button>
+                            <button class="btn btn-primary" onclick="bulkAssignSelected()">Bulk Assign Selected</button>
+                            <button class="btn btn-secondary">Export</button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-filters">
+                        <div class="filter-group">
+                            <label class="filter-label">Department:</label>
+                            <select class="filter-select" id="departmentFilter" onchange="filterByDepartment()">
+                                <option value="">All Departments</option>
+                                <option value="engineering">Engineering</option>
+                                <option value="sales">Sales</option>
+                                <option value="operations">Operations</option>
+                                <option value="support">Customer Support</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="calendar-grid">
+                        <table class="calendar-table">
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-col">
+                                        <input type="checkbox" class="employee-checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                                    </th>
+                                    <th class="employee-col">Employee</th>
+                                    <th>Mon<br><small>1 Nov</small></th>
+                                    <th>Tue<br><small>2 Nov</small></th>
+                                    <th>Wed<br><small>3 Nov</small></th>
+                                    <th>Thu<br><small>4 Nov</small></th>
+                                    <th>Fri<br><small>5 Nov</small></th>
+                                    <th>Mon<br><small>8 Nov</small></th>
+                                    <th>Tue<br><small>9 Nov</small></th>
+                                    <th>Wed<br><small>10 Nov</small></th>
+                                    <th>Thu<br><small>11 Nov</small></th>
+                                    <th>Fri<br><small>12 Nov</small></th>
+                                </tr>
+                            </thead>
+                            <tbody id="rosterTableBody">
+                                <tr data-employee="John Doe" data-department="engineering">
+                                    <td class="checkbox-col">
+                                        <input type="checkbox" class="employee-checkbox employee-select" data-employee="John Doe">
+                                    </td>
+                                    <td class="employee-col">John Doe</td>
+                                    <td onclick="assignShift(this, 'John Doe', '1 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '2 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '3 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '4 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '5 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '8 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '9 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '10 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '11 Nov')"><span class="shift-cell T9">T9</span></td>
+                                    <td onclick="assignShift(this, 'John Doe', '12 Nov')"><span class="shift-cell T9">T9</span></td>
+                                </tr>
+                                <tr data-employee="Sarah Smith" data-department="sales">
+                                    <td class="checkbox-col">
+                                        <input type="checkbox" class="employee-checkbox employee-select" data-employee="Sarah Smith">
+                                    </td>
+                                    <td class="employee-col">Sarah Smith</td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '1 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '2 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '3 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '4 Nov')"><span class="weekly-off">Weekly Off</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '5 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '8 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '9 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '10 Nov')"><span class="shift-cell T2">T2</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '11 Nov')"><span class="weekly-off">Weekly Off</span></td>
+                                    <td onclick="assignShift(this, 'Sarah Smith', '12 Nov')"><span class="shift-cell T2">T2</span></td>
+                                </tr>
+                                <tr data-employee="Mike Johnson" data-department="operations">
+                                    <td class="checkbox-col">
+                                        <input type="checkbox" class="employee-checkbox employee-select" data-employee="Mike Johnson">
+                                    </td>
+                                    <td class="employee-col">Mike Johnson</td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '1 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '2 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '3 Nov')"><span class="weekly-off">Weekly Off</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '4 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '5 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '8 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '9 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '10 Nov')"><span class="weekly-off">Weekly Off</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '11 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                    <td onclick="assignShift(this, 'Mike Johnson', '12 Nov')"><span class="shift-cell T3B">T3B</span></td>
+                                </tr>
+                                <tr data-employee="Emily Davis" data-department="support">
+                                    <td class="checkbox-col">
+                                        <input type="checkbox" class="employee-checkbox employee-select" data-employee="Emily Davis">
+                                    </td>
+                                    <td class="employee-col">Emily Davis</td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '1 Nov')"><span class="shift-cell T23">T23</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '2 Nov')"><span class="shift-cell T23">T23</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '3 Nov')"><span class="shift-cell TSB">TSB</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '4 Nov')"><span class="shift-cell TSB">TSB</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '5 Nov')"><span class="weekly-off">Weekly Off</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '8 Nov')"><span class="shift-cell T23">T23</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '9 Nov')"><span class="shift-cell T23">T23</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '10 Nov')"><span class="shift-cell TSB">TSB</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '11 Nov')"><span class="shift-cell TSB">TSB</span></td>
+                                    <td onclick="assignShift(this, 'Emily Davis', '12 Nov')"><span class="weekly-off">Weekly Off</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Member Profile -->
+            <div id="member-profile" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Member Profile</h1>
+                    <p class="page-subtitle">Members > Member Profile</p>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active">Basic Details</div>
+                    <div class="tab">Configuration</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Personal Information</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Time Zone</label>
+                        <select class="form-input">
+                            <option>India Standard Time (UTC+05:30)</option>
+                            <option>Eastern Time (UTC-05:00)</option>
+                            <option>Pacific Time (UTC-08:00)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Shift Configuration</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Cut Off Time (hh:mm:ss)</label>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button class="btn" id="cutoffDefault" style="background: #667eea; color: white;">Default</button>
+                            <button class="btn btn-secondary" id="cutoffCustom" onclick="toggleCutoff()">Custom</button>
+                        </div>
+                        <input type="text" class="form-input" value="01:00:01" placeholder="01:00:01" style="margin-top: 12px;">
+                    </div>
+
+                    <div class="roster-preview">
+                        <div class="roster-preview-title">📅 Current Week Roster</div>
+                        <div class="roster-week">
+                            <div class="roster-day">
+                                <div class="roster-day-name">MON</div>
+                                <div class="roster-day-shift"><span class="shift-badge morning">T9</span></div>
+                            </div>
+                            <div class="roster-day">
+                                <div class="roster-day-name">TUE</div>
+                                <div class="roster-day-shift"><span class="shift-badge morning">T9</span></div>
+                            </div>
+                            <div class="roster-day">
+                                <div class="roster-day-name">WED</div>
+                                <div class="roster-day-shift"><span class="shift-badge morning">T9</span></div>
+                            </div>
+                            <div class="roster-day">
+                                <div class="roster-day-name">THU</div>
+                                <div class="roster-day-shift"><span class="shift-badge morning">T9</span></div>
+                            </div>
+                            <div class="roster-day">
+                                <div class="roster-day-name">FRI</div>
+                                <div class="roster-day-shift"><span class="shift-badge morning">T9</span></div>
+                            </div>
+                            <div class="roster-day" style="background: #f8f9fa;">
+                                <div class="roster-day-name">SAT</div>
+                                <div class="roster-day-shift" style="font-size: 11px; color: #86868b;">OFF</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Monitoring Settings</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Capture Screenshot</label>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Live Recording</label>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Notification</label>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Stop Timer Enable</label>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Work Mode</label>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">View Screenshot</label>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Monitoring</label>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Stealth Mode</label>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-secondary">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveMemberConfig()">Save Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Shift Template -->
+    <div id="shiftModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Add Shift Template</div>
+            
+            <div class="form-group">
+                <label class="form-label">Shift Code</label>
+                <input type="text" class="form-input" placeholder="e.g., T9" id="modalShiftCode">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Shift Name</label>
+                <input type="text" class="form-input" placeholder="e.g., Morning Shift" id="modalShiftName">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-input" id="modalStartTime">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-input" id="modalEndTime">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeShiftModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveShiftTemplate()">Save Shift</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Assign Shift -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Assign Shift</div>
+            
+            <div class="modal-info">
+                <div class="modal-info-label">Employee</div>
+                <div class="modal-info-value" id="assignEmployeeName"></div>
+            </div>
+
+            <div class="modal-info">
+                <div class="modal-info-label">Date</div>
+                <div class="modal-info-value" id="assignDate"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Select Shift</label>
+                <select class="form-input" id="assignShiftSelect">
+                    <option value="">-- Weekly Off --</option>
+                    <option value="T9">T9 - Morning Shift (07:00 - 15:00)</option>
+                    <option value="T2">T2 - Evening Shift (15:00 - 23:00)</option>
+                    <option value="T3B">T3B - Night Shift (23:00 - 07:00)</option>
+                    <option value="T23">T23 - Split Shift (10:00 - 19:00)</option>
+                    <option value="TSB">TSB - Special Shift (12:00 - 20:00)</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAssignModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAssignShift()">Assign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Bulk Assign -->
+    <div id="bulkAssignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Bulk Assign Shifts</div>
+            
+            <div class="modal-info">
+                <div class="modal-info-label">Selected Employees</div>
+                <div class="modal-info-value" id="bulkEmployeeCount">0 employees selected</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date Range</label>
+                <div style="display: flex; gap: 12px;">
+                    <input type="date" class="form-input" id="bulkStartDate">
+                    <span style="line-height: 40px;">to</span>
+                    <input type="date" class="form-input" id="bulkEndDate">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Select Shift</label>
+                <select class="form-input" id="bulkShiftSelect">
+                    <option value="">-- Select Shift --</option>
+                    <option value="T9">T9 - Morning Shift (07:00 - 15:00)</option>
+                    <option value="T2">T2 - Evening Shift (15:00 - 23:00)</option>
+                    <option value="T3B">T3B - Night Shift (23:00 - 07:00)</option>
+                    <option value="T23">T23 - Split Shift (10:00 - 19:00)</option>
+                    <option value="TSB">TSB - Special Shift (12:00 - 20:00)</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBulkAssignModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmBulkAssign()">Assign to Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCell = null;
+        let currentEmployee = null;
+        let currentDate = null;
+
+        // Navigation
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from all menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Highlight menu item
+            event.target.closest('.menu-item').classList.add('active');
+        }
+
+        // Toggle Switch
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Mode Selection
+        function selectMode(mode) {
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.mode-card').classList.add('selected');
+            
+            if(mode === 'roster') {
+                alert('Roster Mode enabled! You can now create shift templates and manage rosters.');
+            }
+        }
+
+        // Slider
+        function updateSliderValue(slider) {
+            document.getElementById('idleTimeValue').textContent = slider.value + ' minutes';
+        }
+
+        // Shift Modal
+        function openShiftModal() {
+            document.getElementById('shiftModal').classList.add('active');
+        }
+
+        function closeShiftModal() {
+            document.getElementById('shiftModal').classList.remove('active');
+        }
+
+        function saveShiftTemplate() {
+            const code = document.getElementById('modalShiftCode').value;
+            const name = document.getElementById('modalShiftName').value;
+            
+            if(code && name) {
+                alert(`Shift template "${code} - ${name}" created successfully!`);
+                closeShiftModal();
+            } else {
+                alert('Please fill all required fields');
+            }
+        }
+
+        function editShift(code) {
+            alert(`Editing shift: ${code}`);
+            openShiftModal();
+        }
+
+        function deleteShift(code) {
+            if(confirm(`Are you sure you want to delete shift ${code}?`)) {
+                alert(`Shift ${code} deleted successfully!`);
+            }
+        }
+
+        // Roster Assignment
+        function assignShift(cell, employeeName, date) {
+            currentCell = cell;
+            currentEmployee = employeeName;
+            currentDate = date;
+            
+            document.getElementById('assignEmployeeName').textContent = employeeName;
+            document.getElementById('assignDate').textContent = date;
+            document.getElementById('assignModal').classList.add('active');
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').classList.remove('active');
+            currentCell = null;
+            currentEmployee = null;
+            currentDate = null;
+        }
+
+        function confirmAssignShift() {
+            const shiftCode = document.getElementById('assignShiftSelect').value;
+            
+            if(currentCell) {
+                if(shiftCode === '') {
+                    currentCell.innerHTML = '<span class="weekly-off">Weekly Off</span>';
+                } else {
+                    currentCell.innerHTML = `<span class="shift-cell ${shiftCode}">${shiftCode}</span>`;
+                }
+                closeAssignModal();
+            }
+        }
+
+        // Select All Checkbox
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.employee-select');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        // Bulk Assign
+        function bulkAssignSelected() {
+            const selected = document.querySelectorAll('.employee-select:checked');
+            if(selected.length === 0) {
+                alert('Please select at least one employee');
+                return;
+            }
+            
+            const employees = Array.from(selected).map(cb => cb.dataset.employee);
+            document.getElementById('bulkEmployeeCount').textContent = `${employees.length} employee(s) selected: ${employees.join(', ')}`;
+            document.getElementById('bulkAssignModal').classList.add('active');
+        }
+
+        function closeBulkAssignModal() {
+            document.getElementById('bulkAssignModal').classList.remove('active');
+        }
+
+        function confirmBulkAssign() {
+            const selected = document.querySelectorAll('.employee-select:checked');
+            const shiftCode = document.getElementById('bulkShiftSelect').value;
+            const startDate = document.getElementById('bulkStartDate').value;
+            const endDate = document.getElementById('bulkEndDate').value;
+            
+            if(!shiftCode) {
+                alert('Please select a shift');
+                return;
+            }
+            
+            if(!startDate || !endDate) {
+                alert('Please select date range');
+                return;
+            }
+            
+            alert(`Bulk assignment completed!\n${selected.length} employees assigned to ${shiftCode} from ${startDate} to ${endDate}`);
+            closeBulkAssignModal();
+            
+            // Uncheck all checkboxes
+            document.getElementById('selectAll').checked = false;
+            selected.forEach(cb => cb.checked = false);
+        }
+
+        // Department Filter
+        function filterByDepartment() {
+            const selectedDept = document.getElementById('departmentFilter').value;
+            const rows = document.querySelectorAll('#rosterTableBody tr');
+            
+            rows.forEach(row => {
+                if(selectedDept === '' || row.dataset.department === selectedDept) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Cutoff Toggle
+        function toggleCutoff() {
+            const defaultBtn = document.getElementById('cutoffDefault');
+            const customBtn = document.getElementById('cutoffCustom');
+            
+            if(defaultBtn.style.background === 'rgb(102, 126, 234)') {
+                defaultBtn.style.background = '#f5f5f7';
+                defaultBtn.style.color = '#333';
+                customBtn.style.background = '#667eea';
+                customBtn.style.color = 'white';
+            } else {
+                defaultBtn.style.background = '#667eea';
+                defaultBtn.style.color = 'white';
+                customBtn.style.background = '#f5f5f7';
+                customBtn.style.color = '#333';
+            }
+        }
+
+        // Save Functions
+        function saveOrgConfig() {
+            alert('Organization configuration saved successfully!');
+        }
+
+        function saveMemberConfig() {
+            alert('Member configuration saved successfully!');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('MeraMonitor Roster System Prototype Loaded');
+        });
+    </script>
+</body>
+</html>
