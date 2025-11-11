@@ -353,15 +353,15 @@ app.get("/create-producer/:roomName", async (req, res) => {
     }
 
     // After creating videoTransport and audioTransport, if sender info provided:
-    const senderIp = req.query.senderIp;   // require Program.exe to call /create-producer?senderIp=1.2.3.4&senderPort=40000
-    const senderPort = Number(req.query.senderPort);
-    if (senderIp && senderPort) {
+    const senderIp = req.query?.senderIp;
+    const senderPort = req.query?.senderPort ? Number(req.query.senderPort) : undefined;
+
+    if (senderIp && senderPort && videoTransport) {
       try {
-        // force the transport to talk to the sender (no comedia reliance)
         await videoTransport.connect({ ip: senderIp, port: senderPort });
         console.log('videoTransport.connect() to', senderIp, senderPort);
-      } catch (e) {
-        console.warn('videoTransport.connect() failed', e);
+      } catch (err) {
+        console.warn('videoTransport.connect() failed', err);
       }
     }
 
