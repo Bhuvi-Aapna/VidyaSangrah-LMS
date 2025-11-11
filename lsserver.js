@@ -339,19 +339,20 @@ app.get("/create-producer/:roomName", async (req, res) => {
     }
 
     // Reply with the ports so the FFmpeg process can send RTP to them
-    // If rtcpMux is enabled, RTCP is on the same port as RTP (no separate rtcpTuple).
     const videoRtpPort = videoTransport.tuple?.localPort ?? null;
-    const videoRtcpPort = videoTransport.rtcpTuple?.localPort ?? (videoTransport.rtcpMux ? videoRtpPort : null);
     const audioRtpPort = audioTransport.tuple?.localPort ?? null;
-    const audioRtcpPort = audioTransport.rtcpTuple?.localPort ?? (audioTransport.rtcpMux ? audioRtpPort : null);
+    const rtcpMux = !!videoTransport.rtcpMux;
 
-    res.json({
-      videoRtpPort,
-      videoRtcpPort,
-      audioRtpPort,
-      audioRtcpPort,
-      rtcpMux: !!videoTransport.rtcpMux
-    });
+    // If rtcpMux is true, RTCP uses the same port as RTP. If false, try to read rtcpTuple.
+    const videoRtcpPort = rtcpMux ? videoRtpPort : (videoTransport.rtcpTuple?.localPort ?? null);
+    const audioRtcpPort = rtcpMux ? audioRtpPort : (audioTransport.rtcpTuple?.localPort ?? null);
+
+    // Helpful debug log when rtcp tuple is not yet available
+    if (!rtcpMux && !videoTransport.rtcpTuple) {
+      console.warn('create-producer: videoTransport.rtcpTuple not yet available; remote RTCP may not have arrived');
+    }
+
+    res.json({ videoRtpPort, videoRtcpPort, audioRtpPort, audioRtcpPort, rtcpMux });
   } catch (err) {
     console.error("create-producer error:", err);
     res.status(500).json({ error: err.message });
