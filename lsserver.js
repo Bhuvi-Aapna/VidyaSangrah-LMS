@@ -307,25 +307,25 @@ app.get("/create-producer/:roomName", async (req, res) => {
       payloadType: 100,
     };
 
-    // Create video producer (do NOT hardcode encodings.ssrc here)
+    // Create video producer (provide encodings.ssrc to match FFmpeg)
     const videoProducer = await videoTransport.produce({
       kind: "video",
       rtpParameters: {
         codecs: [videoCodec],
-        // don't set encodings.ssrc so mediasoup can learn the incoming SSRC from FFmpeg
-        // encodings: [{ ssrc: 11111 }],
+        // provide the SSRC we will tell FFmpeg to use
+        encodings: [{ ssrc: 11111 }],
         rtcp: { cname: "videoCname" },
       },
     });
-
+    
     console.log('videoProducer created id=', videoProducer.id, 'kind=', videoProducer.kind);
-
-    // Create audio producer (do NOT hardcode encodings.ssrc)
+    
+    // Create audio producer (provide encodings.ssrc to match FFmpeg)
     const audioProducer = await audioTransport.produce({
       kind: "audio",
       rtpParameters: {
         codecs: [audioCodec],
-        // encodings: [{ ssrc: 22222 }],
+        encodings: [{ ssrc: 22222 }],
         rtcp: { cname: "audioCname" },
       },
     });
