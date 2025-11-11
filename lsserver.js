@@ -251,15 +251,15 @@ app.get("/create-producer/:roomName", async (req, res) => {
     // Create RTP + RTCP transport (plain)
     const videoTransport = await router.createPlainTransport({
       listenIp: { ip: "0.0.0.0", announcedIp: "stream.meramonitor.com" },
-      rtcpMux: false,
+      rtcpMux: true,               // enable RTCP multiplexing
       comedia: true,
-	  appData:{type:"plain-video"}
+        appData:{type:"plain-video"}
     });
     const audioTransport = await router.createPlainTransport({
       listenIp: { ip: "0.0.0.0", announcedIp: "stream.meramonitor.com" },
-      rtcpMux: false,
+      rtcpMux: true,               // enable RTCP multiplexing
       comedia: true,
-	  appData:{type:"plain-audio"}
+        appData:{type:"plain-audio"}
     });
 
 	room.transports.set(videoTransport.id, videoTransport);
@@ -269,7 +269,6 @@ app.get("/create-producer/:roomName", async (req, res) => {
     const videoCodec = {
       mimeType: "video/H264",
       clockRate: 90000,
-      payloadType: 101, // keep consistent or let mediasoup pick
       parameters: {
         "packetization-mode": 1,
         "profile-level-id": "42e01f",
@@ -293,7 +292,7 @@ app.get("/create-producer/:roomName", async (req, res) => {
       kind: "video",
       rtpParameters: {
         codecs: [videoCodec],
-        encodings: [{ ssrc: 11111 }],
+        encodings: [{}], // let mediasoup learn SSRC from incoming RTP
         rtcp: { cname: "videoCname" },
       },
     });
