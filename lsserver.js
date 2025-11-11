@@ -315,7 +315,21 @@ app.get("/create-producer/:roomName", async (req, res) => {
     // Register producers in the room so consumers can find them
     room.producers.set(videoProducer.id, videoProducer);
     room.producers.set(audioProducer.id, audioProducer);
-    console.log(`room.producers count=${room.producers.size}`);
+
+    // Periodic stats for diagnostics
+    const statsInterval = setInterval(async () => {
+      try {
+        const vt = await videoTransport.getStats();
+        const vtprod = await videoProducer.getStats();
+        console.log('videoTransport.getStats():', JSON.stringify(vt, null, 2));
+        console.log('videoProducer.getStats():', JSON.stringify(vtprod, null, 2));
+      } catch (e) {
+        console.warn('Stats poll error', e);
+      }
+    }, 3000);
+
+    videoTransport.on('close', () => clearInterval(statsInterval));
+    videoProducer.on('close', () => clearInterval(statsInterval));
 
     // Notify viewers in the room a new producer is available
     try {
