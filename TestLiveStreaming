@@ -1,0 +1,147 @@
+using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Runtime;
+using System.Text;
+using System.Text.Json;
+
+class Program
+{
+
+    static async Task Main(string[] args)
+    {
+        //await TestVideoUpload();
+        var http = new HttpClient();
+        Process _ffmpegProcess;
+        // Adjust these
+        string serverApi = "https://stream.meramonitor.com:3000"; // or https://<ip-or-domain>:3000
+        string channelId = "lslive";
+        string announcedIp = "stream.meramonitor.com";//"74.225.130.88";                 // same as ANNOUNCED_IP on server
+        string ffmpegPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg-bin\\ffmpeg.exe");
+
+        // Choose a fixed local source port for the FFmpeg RTP sender
+        int localVideoSourcePort = 40910;   // choose an unused high port
+
+        // determine public IP to tell the server where FFmpeg will send from
+        string myPublicIp = announcedIp;
+        try
+        {
+            myPublicIp = (await http.GetStringAsync("https://api.ipify.org")).Trim();
+        }
+        catch
+        {
+            Console.WriteLine("Warning: failed to detect public IP; using announcedIp.");
+        }
+
+        // Example: when calling the server to create-producer, append sender info (senderPort = local source port)
+        var createUrl = $"https://stream.meramonitor.com:3000/create-producer/{channelId}?senderIp={Uri.EscapeDataString(myPublicIp)}&senderPort={localVideoSourcePort}";
+        using var resp = await http.GetAsync(createUrl);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            Console.WriteLine("create-producer failed: " + resp.StatusCode);
+            Console.WriteLine(await resp.Content.ReadAsStringAsync());
+        }
+
+        var body = await resp.Content.ReadAsStringAsync();
+        if (!resp.IsSuccessStatusCode)
+        {
+            Console.WriteLine("create-producer failed: " + resp.StatusCode);
+            Console.WriteLine(body);
+            return;
+        }
+
+        using var doc = JsonDocument.Parse(body);
+        var root = JsonConvert.DeserializeObject<PortDetails>(doc.RootElement.ToString());
+
+        int videoPort = root.VideoRtpPort;
+        int audioPort = root.AudioRtpPort;
+
+        // Use announced IP (or server API host) as destination for RTP packets
+        string sendIp = announcedIp; // or server LAN IP if testing locally
+
+        // Desktop capture settings
+        // If you want audio from a Windows device, set audioDeviceName to the exact dshow device name.
+        string audioDeviceName = ""; // e.g. "Microphone (Realtek High Definition Audio)"
+        bool useAudio = !string.IsNullOrWhiteSpace(audioDeviceName);
+
+        // Inputs: video is input 0, audio (if present) will be input 1
+        string videoInput = "-f gdigrab -framerate 30 -i desktop";
+        string audioInput = useAudio ? $"-f dshow -i audio=\"{audioDeviceName}\"" : "";
+
+        var sb = new StringBuilder();
+
+        // 1) add inputs first
+        sb.Append(videoInput);
+        if (useAudio)
+            sb.Append(' ').Append(audioInput);
+
+        // 2) video output (maps from input 0)
+        sb.Append(' ');
+        sb.Append($"-map 0:v:0 -c:v libx264 -preset veryfast -tune zerolatency -profile:v baseline -pix_fmt yuv420p -g 30 -keyint_min 30 -sc_threshold 0 -x264-params keyint=30:scenecut=0 ");
+        // Build FFmpeg RTP URL using explicit local source ports
+        sb.Append($"-f rtp -payload_type 101 rtp://{sendIp}:{root.VideoRtpPort}?pkt_size=1200&localport={localVideoSourcePort}&localrtcpport={localVideoSourcePort + 1}&cname=videoCname&ssrc=11111");
+
+        // Audio output (input 1 if provided)
+        if (useAudio)
+        {
+            // map audio from second input (index 1). The trailing '?' avoids "matches no streams" if device absent.
+            sb.Append(' ');
+            sb.Append($"-map 1:a:0? -c:a libopus -b:a 128k -ar 48000 -ac 2 ");
+            sb.Append($"-f rtp -payload_type 100 rtp://{sendIp}:{root.AudioRtpPort}?pkt_size=1200&localrtcpport={root.AudioRtcpPort}&cname=audioCname&ssrc=22222");
+        }
+
+        string arguments = sb.ToString();
+
+        Console.WriteLine("Starting FFmpeg...");
+        Console.WriteLine("Command: " + arguments);
+        Console.WriteLine("========================================");
+
+        _ffmpegProcess = new Process();
+        _ffmpegProcess.StartInfo.FileName = ffmpegPath;
+        _ffmpegProcess.StartInfo.Arguments = arguments;
+        _ffmpegProcess.StartInfo.RedirectStandardError = true;
+        _ffmpegProcess.StartInfo.RedirectStandardOutput = true;
+        _ffmpegProcess.StartInfo.UseShellExecute = false;
+        _ffmpegProcess.StartInfo.CreateNoWindow = true;
+
+        _ffmpegProcess.OutputDataReceived += (s, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+                Console.WriteLine("[FFmpeg OUT] " + e.Data);
+        };
+
+        _ffmpegProcess.ErrorDataReceived += (s, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+                Console.WriteLine("[FFmpeg ERR] " + e.Data);
+        };
+
+        try
+        {
+            _ffmpegProcess.Start();
+            _ffmpegProcess.BeginErrorReadLine();
+            _ffmpegProcess.BeginOutputReadLine();
+
+            Console.WriteLine($"FFmpeg process started with PID: {_ffmpegProcess.Id}");
+            Console.WriteLine("Press Ctrl+C to stop streaming...");
+
+            _ffmpegProcess.WaitForExit();
+
+            Console.WriteLine($"FFmpeg exited with code: {_ffmpegProcess.ExitCode}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to start FFmpeg: " + ex.Message);
+        }
+    }
+
+}
+
+public class PortDetails
+{
+    public int VideoRtpPort { get; set; }
+    public int AudioRtpPort { get; set; }
+    public int? VideoRtcpPort { get; set; }
+    public int? AudioRtcpPort { get; set; }
+
+}
